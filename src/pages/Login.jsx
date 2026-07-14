@@ -35,7 +35,7 @@ export default function Login() {
                 saveSession(data.session);
                 navigate("/dashboard");
             } else {
-                setError("Invalid Registration Number or Token");
+                setError("Invalid Registration Number or Password");
             }
         } catch (err) {
             console.error("Login error:", err);
@@ -64,7 +64,7 @@ export default function Login() {
                         <input
                             id="regNo"
                             type="text"
-                            placeholder="e.g. 23BCS001"
+                            placeholder=""
                             value={regNo}
                             onChange={(e) => setRegNo(e.target.value)}
                             required
@@ -73,12 +73,12 @@ export default function Login() {
                     </div>
 
                     <div className="input-group">
-                        <label htmlFor="token">Token</label>
+                        <label htmlFor="token">Password</label>
                         <div className="password-wrapper">
                             <input
                                 id="token"
                                 type={showToken ? "text" : "password"}
-                                placeholder="8-character code"
+                                placeholder="Password"
                                 value={token}
                                 onChange={(e) => setToken(e.target.value)}
                                 required
@@ -90,7 +90,7 @@ export default function Login() {
                                 type="button"
                                 onClick={() => setShowToken(!showToken)}
                                 className="btn-toggle-password"
-                                aria-label={showToken ? "Hide token" : "Show token"}
+                                aria-label={showToken ? "Hide password" : "Show password"}
                             >
                                 {showToken ? (
                                     <svg 
