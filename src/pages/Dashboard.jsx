@@ -10,6 +10,7 @@ export default function Dashboard() {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [downloading, setDownloading] = useState(false);
     const [error, setError] = useState("");
 
     const qrRef = useRef(null);
@@ -35,13 +36,11 @@ export default function Dashboard() {
 
             if (rpcError) throw rpcError;
 
-            // If the query returns nothing, the session might be expired or invalid
             if (!data || data.length === 0) {
                 handleLogout();
                 return;
             }
 
-            // Extract the user data from the first row (since it's repeated in the SQL join)
             setUserData({
                 name: data[0].participant_name,
                 regNo: data[0].reg_no,
@@ -64,7 +63,6 @@ export default function Dashboard() {
         try {
             const session = getSession();
             if (session && supabase) {
-                // Attempt to kill the session on the backend in the background
                 supabase.rpc("participant_logout", { p_session: session }).catch(() => { });
             }
         } catch (err) {
@@ -76,7 +74,8 @@ export default function Dashboard() {
     };
 
     const downloadQR = async () => {
-        if (!qrRef.current) return;
+        if (!qrRef.current || downloading) return;
+        setDownloading(true);
         try {
             const dataUrl = await toPng(qrRef.current, {
                 backgroundColor: "#ffffff",
@@ -89,6 +88,8 @@ export default function Dashboard() {
         } catch (err) {
             console.error("Failed to download QR:", err);
             alert("Could not download QR code. Please try again.");
+        } finally {
+            setDownloading(false);
         }
     };
 
@@ -98,113 +99,291 @@ export default function Dashboard() {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
+    // Glass Skeleton Loader during initial data fetch
     if (loading) {
-        return <div className="loading-screen">Loading your pass...</div>;
-    }
-
-    if (error) {
         return (
-            <div className="error-screen">
-                <p>{error}</p>
-                <button onClick={handleLogout} className="btn-secondary">Return to Login</button>
+            <div className="app-wrapper">
+                <div className="ambient-orb orb-top-left" aria-hidden="true"></div>
+                <div className="ambient-orb orb-bottom-right" aria-hidden="true"></div>
+                <div className="logo-wrapper">
+                    <img src="/logo.png" alt="Swarajya Logo" />
+                </div>
+                <div className="loading-skeleton-container">
+                    <div className="skeleton-card glass-card">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div className="skeleton-circle" style={{ width: '48px', height: '48px' }}></div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+                                <div className="skeleton-line" style={{ width: '40%', height: '12px' }}></div>
+                                <div className="skeleton-line" style={{ width: '70%', height: '22px' }}></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="metrics-grid">
+                        <div className="skeleton-card glass-card" style={{ height: '75px' }}></div>
+                        <div className="skeleton-card glass-card" style={{ height: '75px' }}></div>
+                        <div className="skeleton-card glass-card" style={{ height: '75px' }}></div>
+                    </div>
+                    <div className="skeleton-card glass-card" style={{ height: '90px' }}></div>
+                    <div className="skeleton-card glass-card" style={{ height: '140px' }}></div>
+                </div>
             </div>
         );
     }
 
-    const progressPercentage = (userData.completedCount / userData.total) * 100;
+    if (error) {
+        return (
+            <div className="app-wrapper">
+                <div className="ambient-orb orb-top-left" aria-hidden="true"></div>
+                <div className="ambient-orb orb-bottom-right" aria-hidden="true"></div>
+                <div className="error-screen">
+                    <p>{error}</p>
+                    <button onClick={handleLogout} className="btn-secondary">Return to Login</button>
+                </div>
+            </div>
+        );
+    }
+
+    const completedCount = userData?.completedCount || 0;
+    const totalStalls = userData?.total || checkpoints.length || 0;
+    const remainingStalls = Math.max(0, totalStalls - completedCount);
+    const progressPercentage = totalStalls > 0 ? (completedCount / totalStalls) * 100 : 0;
+    const avatarInitial = userData?.name ? userData.name.trim().charAt(0).toUpperCase() : "P";
+    const isAllCompleted = completedCount === totalStalls && totalStalls > 0;
 
     return (
-        <div className="dashboard-container">
-            <div className="logo-wrapper">
-                <img src="/logo.png" alt="Swarajya Logo" />
-            </div>
-            {/* Header section */}
-            <header className="dashboard-header">
-                <div className="header-main">
-                    <div className="header-info">
-                        <p className="welcome-text">Hello,</p>
-                        <h1 className="participant-name">{userData.name}</h1>
-                        <p className="reg-no">{userData.regNo}</p>
-                    </div>
-                    <button 
-                        onClick={() => fetchStatus(true)} 
-                        className={`btn-refresh ${refreshing ? "spinning" : ""}`}
-                        disabled={refreshing}
-                        aria-label="Refresh status"
-                    >
-                        <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="18" 
-                            height="18" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2.5" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round"
+        <div className="app-wrapper">
+            {/* Ambient Background Lighting Orbs */}
+            <div className="ambient-orb orb-top-left" aria-hidden="true"></div>
+            <div className="ambient-orb orb-bottom-right" aria-hidden="true"></div>
+
+            <div className="dashboard-container">
+                <div className="logo-wrapper">
+                    <img src="/logo.png" alt="Swarajya Logo" />
+                </div>
+
+                {/* User Profile Header */}
+                <header className="dashboard-header glass-card">
+                    <div className="header-main">
+                        <div className="header-user-info">
+                            <div className="participant-avatar">{avatarInitial}</div>
+                            <div className="header-details">
+                                <span className="welcome-text">Welcome,</span>
+                                <h1 className="participant-name">{userData?.name}</h1>
+                                <div className="reg-no-tag">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <rect x="3" y="4" width="18" height="16" rx="2" />
+                                        <line x1="7" y1="8" x2="17" y2="8" />
+                                        <line x1="7" y1="12" x2="13" y2="12" />
+                                    </svg>
+                                    <span>{userData?.regNo}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => fetchStatus(true)}
+                            className={`btn-refresh ${refreshing ? "spinning" : ""}`}
+                            disabled={refreshing}
+                            aria-label="Refresh status"
+                            title="Sync status"
                         >
-                            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                            <path d="M3 3v5h5" />
-                            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                            <path d="M16 16h5v5" />
-                        </svg>
-                    </button>
-                </div>
-            </header>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                <path d="M3 3v5h5" />
+                                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                                <path d="M16 16h5v5" />
+                            </svg>
+                        </button>
+                    </div>
+                </header>
 
-            {/* Progress section */}
-            <section className="progress-section">
-                <div className="progress-text">
-                    <span>Progress</span>
-                    <span>{userData.completedCount} / {userData.total} Completed</span>
-                </div>
-                <div className="progress-bar-bg">
-                    <div
-                        className="progress-bar-fill"
-                        style={{ width: `${progressPercentage}%` }}
-                    ></div>
-                </div>
-            </section>
+                {/* Metrics Overview Grid */}
+                <section className="metrics-grid">
+                    <div className="metric-chip glass-card total">
+                        <span className="metric-value">{totalStalls}</span>
+                        <span className="metric-label">Total Stalls</span>
+                    </div>
+                    <div className="metric-chip glass-card claimed">
+                        <span className="metric-value">{completedCount}</span>
+                        <span className="metric-label">Claimed</span>
+                    </div>
+                    <div className="metric-chip glass-card remaining">
+                        <span className="metric-value">{remainingStalls}</span>
+                        <span className="metric-label">Remaining</span>
+                    </div>
+                </section>
 
-            {/* Checkpoints list */}
-            <section className="checkpoints-section">
-                {checkpoints.map((cp) => (
-                    <div key={cp.checkpoint_code} className={`checkpoint-card ${cp.completed ? 'completed' : 'pending'}`}>
-                        <div className="checkpoint-info">
-                            <span className="status-icon">
-                                {cp.completed ? "✔" : "□"}
-                            </span>
-                            <span className="checkpoint-name">{cp.checkpoint_label}</span>
-                        </div>
-                        <div className="checkpoint-time">
-                            {cp.completed ? formatTime(cp.scanned_at) : "Pending"}
+                {/* Pass Progress Bar */}
+                <section className="progress-section glass-card">
+                    <div className="progress-header">
+                        <span className="progress-title">📊Pass Progress</span>
+                        <span className="progress-counter-pill">
+                            {completedCount} / {totalStalls} Scanned
+                        </span>
+                    </div>
+                    <div className="progress-bar-bg">
+                        <div
+                            className="progress-bar-fill"
+                            style={{ width: `${progressPercentage}%` }}
+                        >
+                            <div className="progress-shimmer" aria-hidden="true"></div>
                         </div>
                     </div>
-                ))}
-            </section>
+                    <div className="progress-status-msg">
+                        {isAllCompleted ? (
+                            <span>🎉 All checkpoints completed!</span>
+                        ) : (
+                            <span>Keep going! {remainingStalls} {remainingStalls === 1 ? 'stall' : 'stalls'} remaining to scan.</span>
+                        )}
+                    </div>
+                </section>
 
-            {/* QR Code section */}
-            <section className="qr-section">
-                <h2>Your QR Code</h2>
-                {/* The ref is attached to this div so the download captures the white background properly */}
-                <div className="qr-wrapper" ref={qrRef}>
-                    <QRCodeSVG
-                        value={`https://food.swarajya-mla.club/pass?t=${userData.token}`}
-                        size={200}
-                        level="M"
-                        includeMargin={false}
-                    />
-                </div>
-                <button onClick={downloadQR} className="btn-primary btn-full" style={{ marginTop: "1.5rem" }}>
-                    Download QR
-                </button>
-            </section>
+                {/* Checkpoints Section */}
+                <section className="checkpoints-section">
+                    <span className="section-label">Food Counter Checkpoints</span>
+                    {checkpoints.map((cp, idx) => (
+                        <div
+                            key={cp.checkpoint_code || idx}
+                            className={`checkpoint-card ${cp.completed ? 'completed' : 'pending'}`}
+                        >
+                            <div className="checkpoint-left">
+                                <span className="stall-number">{String(idx + 1).padStart(2, '0')}</span>
+                                <span className="checkpoint-name">{cp.checkpoint_label}</span>
+                            </div>
+                            <div className="checkpoint-right">
+                                {cp.completed ? (
+                                    <span className="status-pill completed">
+                                        <span aria-hidden="true">✔</span>
+                                        <span>{formatTime(cp.scanned_at)}</span>
+                                    </span>
+                                ) : (
+                                    <span className="status-pill pending">
+                                        <span className="status-dot-pending" aria-hidden="true"></span>
+                                        <span>Pending Scan</span>
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </section>
 
-            {/* Footer controls */}
-            <div className="dashboard-footer">
-                <button onClick={handleLogout} className="btn-logout">
-                    Logout
-                </button>
+                {/* Digital Verification Pass (QR Code) */}
+                <section className="qr-section glass-card">
+                    <h2>Digital Verification Pass</h2>
+                    <div className="qr-pass-container">
+                        <div className="corner-bracket top-left" aria-hidden="true"></div>
+                        <div className="corner-bracket top-right" aria-hidden="true"></div>
+                        <div className="corner-bracket bottom-left" aria-hidden="true"></div>
+                        <div className="corner-bracket bottom-right" aria-hidden="true"></div>
+
+                        <div className="qr-wrapper" ref={qrRef}>
+                            <QRCodeSVG
+                                value={`https://food.swarajya-mla.club/pass?t=${userData?.token}`}
+                                size={190}
+                                level="M"
+                                includeMargin={false}
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={downloadQR}
+                        className="btn-primary btn-full"
+                        disabled={downloading}
+                    >
+                        {downloading ? (
+                            <>
+                                <svg
+                                    className="spinner-icon"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <line x1="12" y1="2" x2="12" y2="6" />
+                                    <line x1="12" y1="18" x2="12" y2="22" />
+                                    <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
+                                    <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
+                                    <line x1="2" y1="12" x2="6" y2="12" />
+                                    <line x1="18" y1="12" x2="22" y2="12" />
+                                    <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
+                                    <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
+                                </svg>
+                                <span>Saving Pass Image...</span>
+                            </>
+                        ) : (
+                            <>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                                <span>Download QR Pass</span>
+                            </>
+                        )}
+                    </button>
+                </section>
+
+                {/* Footer controls */}
+                <footer className="dashboard-footer">
+                    <button onClick={handleLogout} className="btn-logout">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                        <span>Logout</span>
+                    </button>
+                </footer>
             </div>
         </div>
     );

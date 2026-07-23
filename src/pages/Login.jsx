@@ -47,34 +47,100 @@ export default function Login() {
 
     return (
         <div className="login-container">
+            {/* Ambient Background Lighting Orbs */}
+            <div className="ambient-orb orb-top-left" aria-hidden="true"></div>
+            <div className="ambient-orb orb-bottom-right" aria-hidden="true"></div>
+
             <div className="logo-wrapper">
                 <img src="/logo.png" alt="Swarajya Logo" />
             </div>
-            <div className="login-card">
+
+            <div className="login-card glass-card">
+                <div className="portal-badge-wrapper">
+                    <div className="portal-badge">
+                        <span className="badge-dot" aria-hidden="true"></span>
+                        Official Participant Portal
+                    </div>
+                </div>
+
                 <div className="brand-header">
                     <h1>Swarajya Food Pass</h1>
-                    <p>Participant Portal</p>
+                    <p>Enter your details to access your food pass</p>
                 </div>
 
                 <form onSubmit={handleLogin} className="login-form">
-                    {error && <div className="error-banner">{error}</div>}
+                    {error && (
+                        <div className="error-banner" role="alert">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                            >
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            <span>{error}</span>
+                        </div>
+                    )}
 
                     <div className="input-group">
                         <label htmlFor="regNo">Registration Number</label>
-                        <input
-                            id="regNo"
-                            type="text"
-                            placeholder=""
-                            value={regNo}
-                            onChange={(e) => setRegNo(e.target.value)}
-                            required
-                            autoComplete="off"
-                        />
+                        <div className="input-with-icon">
+                            <span className="input-icon" aria-hidden="true">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                </svg>
+                            </span>
+                            <input
+                                id="regNo"
+                                type="text"
+                                placeholder="Enter Reg No (e.g. REG123)"
+                                value={regNo}
+                                onChange={(e) => setRegNo(e.target.value)}
+                                required
+                                autoComplete="off"
+                            />
+                        </div>
                     </div>
 
                     <div className="input-group">
                         <label htmlFor="token">Password</label>
-                        <div className="password-wrapper">
+                        <div className="input-with-icon">
+                            <span className="input-icon" aria-hidden="true">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                            </span>
                             <input
                                 id="token"
                                 type={showToken ? "text" : "password"}
@@ -84,6 +150,7 @@ export default function Login() {
                                 required
                                 autoComplete="off"
                                 maxLength={8}
+                                className="has-toggle"
                                 style={{ textTransform: 'uppercase' }}
                             />
                             <button
@@ -93,15 +160,15 @@ export default function Login() {
                                 aria-label={showToken ? "Hide password" : "Show password"}
                             >
                                 {showToken ? (
-                                    <svg 
-                                        xmlns="http://www.w3.org/2000/svg" 
-                                        width="18" 
-                                        height="18" 
-                                        viewBox="0 0 24 24" 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        strokeWidth="2.5" 
-                                        strokeLinecap="round" 
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="18"
+                                        height="18"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2.5"
+                                        strokeLinecap="round"
                                         strokeLinejoin="round"
                                     >
                                         <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
@@ -110,15 +177,15 @@ export default function Login() {
                                         <line x1="2" y1="2" x2="22" y2="22" />
                                     </svg>
                                 ) : (
-                                    <svg 
-                                        xmlns="http://www.w3.org/2000/svg" 
-                                        width="18" 
-                                        height="18" 
-                                        viewBox="0 0 24 24" 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        strokeWidth="2.5" 
-                                        strokeLinecap="round" 
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="18"
+                                        height="18"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2.5"
+                                        strokeLinecap="round"
                                         strokeLinejoin="round"
                                     >
                                         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
@@ -134,9 +201,60 @@ export default function Login() {
                         className="btn-primary"
                         disabled={loading || !regNo || !token}
                     >
-                        {loading ? "Verifying..." : "Login"}
+                        {loading ? (
+                            <>
+                                <svg
+                                    className="spinner-icon"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <line x1="12" y1="2" x2="12" y2="6" />
+                                    <line x1="12" y1="18" x2="12" y2="22" />
+                                    <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
+                                    <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
+                                    <line x1="2" y1="12" x2="6" y2="12" />
+                                    <line x1="18" y1="12" x2="22" y2="12" />
+                                    <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
+                                    <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
+                                </svg>
+                                <span>Verifying Credentials...</span>
+                            </>
+                        ) : (
+                            <>
+                                <span>Login</span>
+                                <svg
+                                    className="btn-arrow"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                    <polyline points="12 5 19 12 12 19" />
+                                </svg>
+                            </>
+                        )}
                     </button>
                 </form>
+
+                <div className="login-footer-note">
+                    <p>
+                        <span aria-hidden="true">💡</span>
+                        Keep your QR code ready at food counters for instant scanning
+                    </p>
+                </div>
             </div>
         </div>
     );
