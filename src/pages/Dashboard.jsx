@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { toPng } from "html-to-image";
@@ -16,14 +16,24 @@ export default function Dashboard() {
     const qrRef = useRef(null);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchStatus(false);
-    }, []);
+    const handleLogout = useCallback(() => {
+        try {
+            const session = getSession();
+            if (session && supabase) {
+                supabase.rpc("participant_logout", { p_session: session }).catch(() => { });
+            }
+        } catch (err) {
+            console.error("Error during backend logout:", err);
+        } finally {
+            clearSession();
+            navigate("/");
+        }
+    }, [navigate]);
 
-    const fetchStatus = async (isManual = false) => {
+    const fetchStatus = useCallback(async (isManual = false, isSilent = false) => {
         if (isManual) {
             setRefreshing(true);
-        } else {
+        } else if (!isSilent) {
             setLoading(true);
         }
         try {
@@ -50,28 +60,27 @@ export default function Dashboard() {
             });
 
             setCheckpoints(data);
+            setError("");
         } catch (err) {
             console.error("Failed to fetch status:", err);
-            setError("Could not load dashboard data. Please try logging in again.");
+            if (!isSilent) {
+                setError("Could not load dashboard data. Please try logging in again.");
+            }
         } finally {
-            setLoading(false);
+            if (!isSilent) {
+                setLoading(false);
+            }
             setRefreshing(false);
         }
-    };
+    }, [handleLogout]);
 
-    const handleLogout = () => {
-        try {
-            const session = getSession();
-            if (session && supabase) {
-                supabase.rpc("participant_logout", { p_session: session }).catch(() => { });
-            }
-        } catch (err) {
-            console.error("Error during backend logout:", err);
-        } finally {
-            clearSession();
-            navigate("/");
-        }
-    };
+    useEffect(() => {
+        fetchStatus(false);
+        const interval = setInterval(() => {
+            fetchStatus(false, true);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, [fetchStatus]);
 
     const downloadQR = async () => {
         if (!qrRef.current || downloading) return;
@@ -191,31 +200,37 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        <button
-                            onClick={() => fetchStatus(true)}
-                            className={`btn-refresh ${refreshing ? "spinning" : ""}`}
-                            disabled={refreshing}
-                            aria-label="Refresh status"
-                            title="Sync status"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
+                        <div className="header-actions">
+                            <div className="live-sync-badge" title="Auto syncing status live every 3 seconds">
+                                <span className="live-sync-dot" aria-hidden="true"></span>
+                                <span>Live 3s</span>
+                            </div>
+                            <button
+                                onClick={() => fetchStatus(true)}
+                                className={`btn-refresh ${refreshing ? "spinning" : ""}`}
+                                disabled={refreshing}
+                                aria-label="Refresh status"
+                                title="Sync status manually"
                             >
-                                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                                <path d="M3 3v5h5" />
-                                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                                <path d="M16 16h5v5" />
-                            </svg>
-                        </button>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    aria-hidden="true"
+                                >
+                                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                    <path d="M3 3v5h5" />
+                                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                                    <path d="M16 16h5v5" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </header>
 

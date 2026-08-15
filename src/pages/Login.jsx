@@ -115,9 +115,10 @@ export default function Login() {
                                 type="text"
                                 placeholder="Enter Reg No (e.g. REG123)"
                                 value={regNo}
-                                onChange={(e) => setRegNo(e.target.value)}
+                                onChange={(e) => setRegNo(e.target.value.toUpperCase())}
                                 required
                                 autoComplete="off"
+                                style={{ textTransform: 'uppercase' }}
                             />
                         </div>
                     </div>
