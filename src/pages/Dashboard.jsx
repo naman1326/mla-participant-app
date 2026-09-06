@@ -8,6 +8,7 @@ import entryIcon from "../../data/entry.png";
 import plateIcon from "../../data/plate.png";
 import modakIcon from "../../data/modak.png";
 import malpuaIcon from "../../data/malpua.png";
+import logoImg from "../../data/logo.png";
 
 // Map checkpoint code or label to its respective emoticon image
 const getCheckpointEmoticon = (cp) => {
@@ -130,7 +131,7 @@ export default function Dashboard() {
                 <div className="ambient-orb orb-top-left" aria-hidden="true"></div>
                 <div className="ambient-orb orb-bottom-right" aria-hidden="true"></div>
                 <div className="logo-wrapper">
-                    <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Swarajya Logo" />
+                    <img src={logoImg} alt="Swarajya Logo" />
                 </div>
                 <div className="loading-skeleton-container">
                     <div className="skeleton-card glass-card">
@@ -182,7 +183,7 @@ export default function Dashboard() {
 
             <div className="dashboard-container">
                 <div className="logo-wrapper">
-                    <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Swarajya Logo" />
+                    <img src={logoImg} alt="Swarajya Logo" />
                 </div>
 
                 {/* User Profile Header */}
