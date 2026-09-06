@@ -1,0 +1,27 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/participant/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/participant/assets/:match*",
+      "destination": "/assets/:match*"
+    },
+    {
+      "source": "/participant/:file(.*\\.[^/]+)",
+      "destination": "/:file"
+    },
+    {
+      "source": "/participant/:match*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/participant",
+      "destination": "/index.html"
+    }
+  ]
+}

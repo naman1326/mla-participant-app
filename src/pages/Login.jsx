@@ -52,7 +52,7 @@ export default function Login() {
             <div className="ambient-orb orb-bottom-right" aria-hidden="true"></div>
 
             <div className="logo-wrapper">
-                <img src="/logo.png" alt="Swarajya Logo" />
+                <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Swarajya Logo" />
             </div>
 
             <div className="login-card glass-card">

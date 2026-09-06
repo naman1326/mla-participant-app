@@ -130,7 +130,7 @@ export default function Dashboard() {
                 <div className="ambient-orb orb-top-left" aria-hidden="true"></div>
                 <div className="ambient-orb orb-bottom-right" aria-hidden="true"></div>
                 <div className="logo-wrapper">
-                    <img src="/logo.png" alt="Swarajya Logo" />
+                    <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Swarajya Logo" />
                 </div>
                 <div className="loading-skeleton-container">
                     <div className="skeleton-card glass-card">
@@ -182,7 +182,7 @@ export default function Dashboard() {
 
             <div className="dashboard-container">
                 <div className="logo-wrapper">
-                    <img src="/logo.png" alt="Swarajya Logo" />
+                    <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Swarajya Logo" />
                 </div>
 
                 {/* User Profile Header */}
