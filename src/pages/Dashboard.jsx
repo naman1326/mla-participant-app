@@ -4,6 +4,21 @@ import { QRCodeSVG } from "qrcode.react";
 import { toPng } from "html-to-image";
 import { supabase } from "../lib/supabase";
 import { getSession, clearSession } from "../utils/auth";
+import entryIcon from "../../data/entry.png";
+import plateIcon from "../../data/plate.png";
+import modakIcon from "../../data/modak.png";
+import malpuaIcon from "../../data/malpua.png";
+
+// Map checkpoint code or label to its respective emoticon image
+const getCheckpointEmoticon = (cp) => {
+    if (!cp) return null;
+    const key = `${cp.checkpoint_code || ""} ${cp.checkpoint_label || ""}`.toLowerCase();
+    if (key.includes("entry") || key.includes("gate")) return entryIcon;
+    if (key.includes("plate") || key.includes("dish") || key.includes("thali")) return plateIcon;
+    if (key.includes("modak")) return modakIcon;
+    if (key.includes("malpua") || key.includes("malpoha")) return malpuaIcon;
+    return null;
+};
 
 export default function Dashboard() {
     const [checkpoints, setCheckpoints] = useState([]);
@@ -266,6 +281,37 @@ export default function Dashboard() {
                             <div className="progress-shimmer" aria-hidden="true"></div>
                         </div>
                     </div>
+
+                    {/* Checkpoints Milestone Emoticons Tracker */}
+                    {checkpoints.length > 0 && (
+                        <div className="progress-emoticons-row">
+                            {checkpoints.map((cp, idx) => {
+                                const emoticon = getCheckpointEmoticon(cp);
+                                return (
+                                    <div
+                                        key={cp.checkpoint_code || idx}
+                                        className={`progress-emoticon-chip ${cp.completed ? "completed" : "pending"}`}
+                                        title={`${cp.checkpoint_label || "Checkpoint"}: ${cp.completed ? "Scanned" : "Pending"}`}
+                                    >
+                                        {emoticon ? (
+                                            <img
+                                                src={emoticon}
+                                                alt=""
+                                                className="progress-chip-emoticon"
+                                                aria-hidden="true"
+                                            />
+                                        ) : (
+                                            <span className="progress-chip-fallback">📍</span>
+                                        )}
+                                        <span className="progress-chip-status" aria-hidden="true">
+                                            {cp.completed ? "✔" : idx + 1}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
                     <div className="progress-status-msg">
                         {isAllCompleted ? (
                             <span>🎉 All checkpoints completed!</span>
@@ -278,30 +324,43 @@ export default function Dashboard() {
                 {/* Checkpoints Section */}
                 <section className="checkpoints-section">
                     <span className="section-label">Food Counter Checkpoints</span>
-                    {checkpoints.map((cp, idx) => (
-                        <div
-                            key={cp.checkpoint_code || idx}
-                            className={`checkpoint-card ${cp.completed ? 'completed' : 'pending'}`}
-                        >
-                            <div className="checkpoint-left">
-                                <span className="stall-number">{String(idx + 1).padStart(2, '0')}</span>
-                                <span className="checkpoint-name">{cp.checkpoint_label}</span>
-                            </div>
-                            <div className="checkpoint-right">
-                                {cp.completed ? (
-                                    <span className="status-pill completed">
-                                        <span aria-hidden="true">✔</span>
-                                        <span>{formatTime(cp.scanned_at)}</span>
+                    {checkpoints.map((cp, idx) => {
+                        const emoticon = getCheckpointEmoticon(cp);
+                        return (
+                            <div
+                                key={cp.checkpoint_code || idx}
+                                className={`checkpoint-card ${cp.completed ? 'completed' : 'pending'}`}
+                            >
+                                <div className="checkpoint-left">
+                                    <span className="stall-number">{String(idx + 1).padStart(2, '0')}</span>
+                                    <span className="checkpoint-name">
+                                        {emoticon && (
+                                            <img
+                                                src={emoticon}
+                                                alt=""
+                                                className="checkpoint-emoticon"
+                                                aria-hidden="true"
+                                            />
+                                        )}
+                                        <span>{cp.checkpoint_label}</span>
                                     </span>
-                                ) : (
-                                    <span className="status-pill pending">
-                                        <span className="status-dot-pending" aria-hidden="true"></span>
-                                        <span>Pending Scan</span>
-                                    </span>
-                                )}
+                                </div>
+                                <div className="checkpoint-right">
+                                    {cp.completed ? (
+                                        <span className="status-pill completed">
+                                            <span aria-hidden="true">✔</span>
+                                            <span>{formatTime(cp.scanned_at)}</span>
+                                        </span>
+                                    ) : (
+                                        <span className="status-pill pending">
+                                            <span className="status-dot-pending" aria-hidden="true"></span>
+                                            <span>Pending Scan</span>
+                                        </span>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </section>
 
                 {/* Digital Verification Pass (QR Code) */}
