@@ -27,7 +27,7 @@ export default function Login() {
         try {
             const { data, error: rpcError } = await supabase.rpc("participant_login", {
                 p_reg_no: regNo.trim(),
-                p_token: token.trim().toUpperCase()
+                p_token: token.trim()
             });
 
             if (rpcError) throw rpcError;
@@ -151,9 +151,7 @@ export default function Login() {
                                 onChange={(e) => setToken(e.target.value)}
                                 required
                                 autoComplete="off"
-                                maxLength={8}
                                 className="has-toggle"
-                                style={{ textTransform: 'uppercase' }}
                             />
                             <button
                                 type="button"
@@ -196,6 +194,9 @@ export default function Login() {
                                 )}
                             </button>
                         </div>
+                        <p className="login-hint">
+                            Have a personalized setup link? Use it to set or reset your password
+                        </p>
                     </div>
 
                     <button
