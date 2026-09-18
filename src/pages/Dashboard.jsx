@@ -6,8 +6,8 @@ import { supabase } from "../lib/supabase";
 import { getSession, clearSession } from "../utils/auth";
 import entryIcon from "../../data/entry.png";
 import plateIcon from "../../data/plate.png";
-import modakIcon from "../../data/modak.png";
-import malpuaIcon from "../../data/malpua.png";
+import drinkIcon from "../../data/drink.png";
+import sweetIcon from "../../data/sweet.png";
 import logoImg from "../../data/logo.png";
 
 // Map checkpoint code or label to its respective emoticon image
@@ -16,8 +16,8 @@ const getCheckpointEmoticon = (cp) => {
     const key = `${cp.checkpoint_code || ""} ${cp.checkpoint_label || ""}`.toLowerCase();
     if (key.includes("entry") || key.includes("gate")) return entryIcon;
     if (key.includes("plate") || key.includes("dish") || key.includes("thali")) return plateIcon;
-    if (key.includes("modak")) return modakIcon;
-    if (key.includes("malpua") || key.includes("malpoha")) return malpuaIcon;
+    if (key.includes("drink") || key.includes("beverage") || key.includes("water") || key.includes("juice") || key.includes("sharbat")) return drinkIcon;
+    if (key.includes("sweet") || key.includes("dessert") || key.includes("mithai") || key.includes("modak") || key.includes("malpua")) return sweetIcon;
     return null;
 };
 
